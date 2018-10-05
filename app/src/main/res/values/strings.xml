@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">News App</string>
+    <string name="no_internet">No Internet Connection</string>
+    <string name="no_news">No News Found</string>
+
+    <string name="settings_menu_item">Settings</string>
+    <string name="settings_title">News Settings</string>
+    <string name="orderby">Order By</string>
+    <string name="order_by_key">order_by</string>
+    <string name="topic_title">Choose Topics</string>
+    <string name="category_title">Choose Category</string>
+    <string name="section_key">section</string>
+    <string name="default_order_value">newest</string>
+    <string name="default_section_value"> </string>
+    <array name="preferences_options">
+        <item>Newest</item>
+        <item>Oldest</item>
+    </array>
+
+    <array name="preferences_options_value">
+        <item>newest</item>
+        <item>oldest</item>
+    </array>
+    <array name="categories">
+        <item>All</item>
+        <item>Sports</item>
+        <item>Politics</item>
+        <item>Music</item>
+        <item>Society</item>
+        <item>Education</item>
+    </array>
+    <array name="categories_value">
+        <item> </item>
+        <item>sport</item>
+        <item>politics</item>
+        <item>music</item>
+        <item>society</item>
+        <item>education</item>
+    </array>
+</resources>
