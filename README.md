@@ -3,4 +3,4 @@
 * https://in.udacity.com/
 
 # API
-http://open-platform.theguardian.com/documentation/
+I have taken the help of <a href="http://open-platform.theguardian.com/documentation/" target="_blank">Guardian API</a>.
