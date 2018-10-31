@@ -8,25 +8,27 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
+
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<News>>, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String NEWS_REQUEST_URL = "https://content.guardianapis.com/search?";
-
-    private static final String LOG_TAG = MainActivity.class.getName();
 
     /**
      * Constant value for the News loader ID.
@@ -34,25 +36,25 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
      */
     private static final int NEWS_LOADER_ID = 1;
 
+
+    @BindView(R.id.list)
+    ListView newsListView;
+    @BindView(R.id.empty_view)
+    TextView mEmptyStateTextView;
+    @BindView(R.id.loading_indicator)
+    ProgressBar loadingIndicator;
+
     /**
      * Adapter for the list of news
      */
     private NewsAdapter mAdapter;
 
-    /**
-     * TextView that is displayed when the list is empty
-     */
-    private TextView mEmptyStateTextView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
-        // Find a reference to the {@link ListView} in the layout
-        ListView newsListView = findViewById(R.id.list);
-
-        mEmptyStateTextView = findViewById(R.id.empty_view);
         newsListView.setEmptyView(mEmptyStateTextView);
 
         // Create a new adapter that takes an empty list of news as input
@@ -142,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Uri baseUri = Uri.parse(NEWS_REQUEST_URL);
         Uri.Builder uriBuilder = baseUri.buildUpon();
 
-        /* Appending the required query parameters for genrating the proper URL */
+        /* Appending the required query parameters for generating the proper URL */
         uriBuilder.appendQueryParameter("api-key", "de7cc0ee-c039-4cb7-a230-d4da8ed12abf");
         uriBuilder.appendQueryParameter("show-tags", "contributor");
         uriBuilder.appendQueryParameter("order-by", orderBy);
@@ -157,8 +159,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<List<News>> loader, List<News> news) {
-        // Hide loading indicator because the data has been loaded
-        View loadingIndicator = findViewById(R.id.loading_indicator);
         loadingIndicator.setVisibility(View.GONE);
 
         // Set empty state text to display "No news found."
