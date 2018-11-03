@@ -1,13 +1,11 @@
 package com.example.android.newsapp;
 
-
-import android.app.Activity;
+import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.List;
@@ -15,38 +13,47 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class NewsAdapter extends ArrayAdapter<News> {
+public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ViewHolder> {
 
-    private final List<News> news;
-    private LayoutInflater inflater;
+    private List<News> newsItem;
+    private Context mContext;
 
-    NewsAdapter(@NonNull Activity context, List<News> news) {
-        super(context, 0, news);
-        this.news = news;
-        inflater = context.getLayoutInflater();
+    NewsAdapter(List<News> newsList, Context mContext) {
+        this.newsItem = newsList;
+        this.mContext = mContext;
     }
 
     @NonNull
     @Override
-    public View getView(int position, @Nullable View view, @NonNull ViewGroup parent) {
-        ViewHolder holder;
-        if (view == null) {
-            view = inflater.inflate(R.layout.news_list, parent, false);
-            holder = new ViewHolder(view);
-            view.setTag(holder);
-        } else {
-            holder = (ViewHolder) view.getTag();
-        }
-
-        holder.sectionView.setText(news.get(position).getSectionName());
-        holder.titleView.setText(news.get(position).getWebTitle());
-        holder.dateView.setText(news.get(position).getWebPublicationDate());
-        holder.authorView.setText(news.get(position).getAuthor());
-
-        return view;
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.news_list, parent, false);
+        return new ViewHolder(view, this);
     }
 
-    static class ViewHolder {
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
+        News currentItem = newsItem.get(position);
+
+        String title = currentItem.getWebTitle();
+        String section = currentItem.getSectionName();
+        String author = currentItem.getAuthor();
+        String pubDate = currentItem.getWebPublicationDate();
+
+        viewHolder.titleView.setText(title);
+        viewHolder.sectionView.setText(section);
+        viewHolder.authorView.setText(author);
+        viewHolder.dateView.setText(pubDate);
+
+    }
+
+    @Override
+    public int getItemCount() {
+        return newsItem.size();
+    }
+
+    class ViewHolder extends RecyclerView.ViewHolder {
+        final NewsAdapter mAdapter;
+
         @BindView(R.id.sectionName_id)
         TextView sectionView;
         @BindView(R.id.webTitle_id)
@@ -56,8 +63,13 @@ public class NewsAdapter extends ArrayAdapter<News> {
         @BindView(R.id.authorName_id)
         TextView authorView;
 
-        ViewHolder(View view) {
+        ViewHolder(View view, NewsAdapter adapter) {
+
+            super(view);
+
             ButterKnife.bind(this, view);
+
+            this.mAdapter = adapter;
         }
     }
 }

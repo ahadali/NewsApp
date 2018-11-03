@@ -11,11 +11,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -37,17 +37,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final int NEWS_LOADER_ID = 1;
 
 
-    @BindView(R.id.list)
-    ListView newsListView;
+    @BindView(R.id.recyclerView)
+    RecyclerView newsListView;
     @BindView(R.id.empty_view)
     TextView mEmptyStateTextView;
     @BindView(R.id.loading_indicator)
     ProgressBar loadingIndicator;
 
-    /**
-     * Adapter for the list of news
-     */
-    private NewsAdapter mAdapter;
+    private Context mContext;
+
+    private List<News> mList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,10 +54,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        newsListView.setEmptyView(mEmptyStateTextView);
+        /* Create a new adapter that takes an empty list of news as input
+           Adapter for the list of news
+        */
+        NewsAdapter mAdapter = new NewsAdapter(mList, mContext);
 
-        // Create a new adapter that takes an empty list of news as input
-        mAdapter = new NewsAdapter(this, new ArrayList<News>());
+        newsListView.setLayoutManager(new LinearLayoutManager(this));
 
         // Set the adapter on the {@link ListView}
         newsListView.setAdapter(mAdapter);
@@ -68,22 +69,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // And register to be notified of preference changes
         // So we know when the user has adjusted the query settings
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
-
-        // Set an item click listener on the ListView, which sends an intent to a web browser
-        newsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-
-                News currentNews = mAdapter.getItem(position);
-
-                // Convert the String URL into a URI object (to pass into the Intent constructor)
-                Uri newsUri = Uri.parse(currentNews != null ? currentNews.getWebUrl() : null);
-
-                Intent websiteIntent = new Intent(Intent.ACTION_VIEW, newsUri);
-
-                startActivity(websiteIntent);
-            }
-        });
 
         // Get a reference to the ConnectivityManager to check state of network connectivity
         ConnectivityManager connMgr = (ConnectivityManager)
@@ -102,14 +87,25 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             // because this activity implements the LoaderCallbacks interface).
             loaderManager.initLoader(NEWS_LOADER_ID, null, this);
         } else {
-            // Otherwise, display error
-            // First, hide loading indicator so error message will be visible
-            View loadingIndicator = findViewById(R.id.loading_indicator);
             loadingIndicator.setVisibility(View.GONE);
-
             // Update empty state with no connection error message
             mEmptyStateTextView.setText(R.string.no_internet);
         }
+
+        // Overriding the onClick and onLongClick methods from RecyclerTouchListener
+        newsListView.addOnItemTouchListener(new RecyclerTouchListener(getApplication(), newsListView, new RecyclerTouchListener.ClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+                News news = mList.get(position);
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(news.getWebUrl()));
+                startActivity(browserIntent);
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+
+            }
+        }));
     }
 
     @Override
@@ -117,11 +113,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (key.equals(getString(R.string.order_by_key)) ||
                 key.equals(getString(R.string.section_key))) {
 
-            mAdapter.clear();
+            mList.clear();
 
             mEmptyStateTextView.setVisibility(View.GONE);
 
-            View loadingIndicator = findViewById(R.id.loading_indicator);
             loadingIndicator.setVisibility(View.VISIBLE);
 
             getLoaderManager().restartLoader(NEWS_LOADER_ID, null, this);
@@ -163,18 +158,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         // Set empty state text to display "No news found."
         mEmptyStateTextView.setText(R.string.no_news);
+        newsListView.setVisibility(View.GONE);
 
         /* If there is a valid list of {@link News}, then add them to the adapter's
         data set. This will trigger the ListView to update. */
         if (news != null && !news.isEmpty()) {
-            mAdapter.addAll(news);
+            newsListView.setVisibility(View.VISIBLE);
+            mList.addAll(news);
+            loadingIndicator.setVisibility(View.GONE);
+            mEmptyStateTextView.setVisibility(View.GONE);
         }
     }
 
     @Override
     public void onLoaderReset(Loader<List<News>> loader) {
-        // Loader reset, so we can clear out our existing data.
-        mAdapter.clear();
+
     }
 
     @Override
